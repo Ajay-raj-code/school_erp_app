@@ -1,4 +1,8 @@
+import 'dart:convert';
+
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
+
+import '../model/user_model.dart';
 
 class SecureStorage{
   final storage = FlutterSecureStorage();
@@ -18,6 +22,12 @@ class SecureStorage{
   Future<void> clearToken() async{
     await storage.delete(key: "access");
     await storage.delete(key: "refresh");
+  }
+  Future<void> saveUser({required UserModel user}) async{
+    await storage.write(key: "user", value: jsonEncode(user.toJson()));
+  }
+  Future<UserModel> getUser() async{
+    return UserModel.fromJson(jsonDecode(await storage.read(key: "user") ?? ""));
   }
 
 

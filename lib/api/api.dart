@@ -1,13 +1,16 @@
+import 'dart:io';
+
 import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:school_erp_mobile/components/secure_storage.dart';
+import 'package:school_erp_mobile/model/chat_model.dart';
 import 'package:school_erp_mobile/model/user_model.dart';
 import 'package:school_erp_mobile/routes/routes.dart';
 
 class LoginHandler {
   final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "http://10.155.24.112:8000",
+      baseUrl: Platform.isWindows?"http://127.0.0.1:8000/":"http://10.0.2.2:8000/",
       connectTimeout: Duration(seconds: 20),
       receiveTimeout: Duration(seconds: 10),
       headers: {
@@ -24,23 +27,46 @@ class LoginHandler {
   }) async {
     try {
       print("api $password");
+
       final response = await dio.post(
         '/api/account/login/',
         data: {
           "username": username,
           "password": password,
           "school_id": schoolCode,
+          "system":Platform.isWindows?"windows":"android",
         },
       );
       print(response.data);
       Map<String, dynamic> user = response.data;
+      print("check 1");
+      UserModel userprofile = UserModel.fromJson(user["user"]);
+
+      SecureStorage().saveUser(user: userprofile);
+
       SecureStorage().saveTokens(
         accessToken: user["access"],
         refreshToken: user["refresh"],
       );
       return true;
     } catch (e) {
-      print(e);
+      print("Hello");
+      if(e is DioException){
+
+        if(e.response != null && e.response!.statusCode == 403){
+          Get.snackbar("Access denied", e.response!.data["detail"].toString(), duration: Duration(seconds: 5));
+        }
+        if(e.response != null && e.response!.statusCode ==401){
+          Get.snackbar("Invalid", e.response!.data["detail"].toString(), duration: Duration(seconds: 5));
+
+        }else{
+          print(e);
+        }
+
+      }
+      else{
+        print(e);
+      }
 
       return false;
     }
@@ -50,7 +76,7 @@ class LoginHandler {
 class APIHandler {
   final Dio dio = Dio(
     BaseOptions(
-      baseUrl: "http://10.155.24.112:8000/",
+      baseUrl: Platform.isWindows?"http://127.0.0.1:8000/":"http://10.0.2.2:8000/",
       connectTimeout: Duration(seconds: 20),
       receiveTimeout: Duration(seconds: 10),
       headers: {
@@ -148,6 +174,26 @@ class APIHandler {
       return [];
     }
   }
+
+  Future<UserModel?> getMyProfile() async{
+    try {
+      final response = await dio.get(
+        "api/account/my-profile/",
+      );
+
+      print(response);
+      if (response.statusCode == 200) {
+        print("Check 2");
+        final UserModel user = UserModel.fromJson(response.data["data"]);
+        print(user.profilePicture);
+        return user;
+      }
+      return null;
+    } catch (e) {
+      print(e);
+      return null;
+    }
+  }
   Future<bool> checkUserName({required String username}) async {
     try {
       final response = await dio.get(
@@ -189,6 +235,65 @@ class APIHandler {
       print(response);
       List<dynamic> data = List<String>.from(await response.data["data"]);
       return data;
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  Future<List<UserModel>> SearchUser({required String searchQuery}) async {
+    try {
+      print("clling searchUser");
+      final response = await dio.get("api/account/search-user/", queryParameters: {"searchQuery":searchQuery});
+      print(response);
+      final List<dynamic> jsonList = response.data["data"];
+
+      List<UserModel> users = jsonList.map((json) => UserModel.fromJson(json)).toList();
+      return users;
+
+    } catch (e) {
+      print(e);
+      return [];
+    }
+  }
+
+  Future<void> createChatRoom({required String id}) async {
+    try {
+      print("Chat room");
+      final response = await dio.post("api/chat/create_room/", data: {"name":"hello", "type":"private", "members":[{"user":id}]});
+      print(response);
+      print(response.statusCode);
+
+    } catch (e) {
+      print(e);
+    }
+  }
+  Future<void> createGroupChatRoom({required List<String> id,required String groupName}) async {
+    List<Map<String, dynamic>> users = id.map((e) => {"user":e},).toList();
+    try {
+      print("Group room");
+      final response = await dio.post("api/chat/create_room/", data: {"name":groupName, "type":"group", "members":users});
+      print(response);
+      print(response.statusCode);
+
+    } catch (e) {
+      print(e);
+    }
+  }
+  Future<List<ChatRoomModel>> getAllChatRoom() async {
+    try {
+      print("Get all chat rooms");
+      final response = await dio.get("api/chat/list_rooms/",);
+      print(response);
+      print(response.statusCode);
+      if(response.statusCode ==200){
+        final List<dynamic> jsonList = response.data["data"]["rooms"];
+
+        List<ChatRoomModel> chatRooms = jsonList.map((json) => ChatRoomModel.fromJson(json: json)).toList();
+        return chatRooms;
+      }
+      return [];
+
     } catch (e) {
       print(e);
       return [];

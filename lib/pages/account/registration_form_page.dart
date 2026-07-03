@@ -329,8 +329,9 @@ class _RegistrationFormPageState extends State<RegistrationFormPage> {
                 ),
                 CustomButton(buttonText: "Submit", onTap: () async {
 
-
+                  print("tysgar");
                   if(_formkey.currentState!.validate()){
+                    print("cheked");
                     if(usernameStatusController.status.value){
 
                       if(category == UserCategory.parent){

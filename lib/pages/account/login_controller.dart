@@ -1,11 +1,13 @@
 import 'package:get/get.dart';
 import 'package:school_erp_mobile/api/api.dart';
 import 'package:school_erp_mobile/components/secure_storage.dart';
+import 'package:school_erp_mobile/model/user_model.dart';
 
 class LoginController extends GetxController {
   RxList addUser= [].obs;
   RxList viewUser= [].obs;
   RxList permission = [].obs;
+  UserModel? currentUser ;
 @override
   void onInit() {
     // TODO: implement onInit
@@ -14,6 +16,7 @@ class LoginController extends GetxController {
 
   }
   Future<void> initionlization() async {
+    currentUser = await APIHandler().getMyProfile();
     permission.value = await APIHandler().GetMyPermission();
     print("called permission");
     if (permission.contains("create_director")) {

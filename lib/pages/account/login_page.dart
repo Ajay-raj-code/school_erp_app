@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:school_erp_mobile/api/api.dart';
@@ -14,21 +16,31 @@ class LoginPage extends StatelessWidget{
   Widget build(BuildContext context) {
     final height = Get.height;
     final width = Get.width;
+    bool itIsWindow= false;
+    if(Platform.isWindows){
+      itIsWindow = true;
+    }
     return Scaffold(
       resizeToAvoidBottomInset: true,
-      backgroundColor: MyColor.white,
-      body: SingleChildScrollView(
-        child: SizedBox(
-          height: height,
-          width: width,
-          child: Stack(
-            children: [
-              Positioned(child: Container(
-                height: height*0.6,
-                color: MyColor.blue,
-              )),
-
-              Column(
+      body: LayoutBuilder(builder: (context, constraints) => Container(
+        height: double.infinity,
+        width: double.infinity,
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+            colors: [
+              Color(0xFF2F5BFF),
+              Color(0xFF1E3CFF),
+              Color(0xFF3A0CA3),
+            ],
+          ),
+        ),
+        child: SingleChildScrollView(
+          scrollDirection: Axis.vertical,
+          child: SizedBox(
+              width: width,
+              child:               Column(
                 mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                 crossAxisAlignment: CrossAxisAlignment.center,
                 children: [
@@ -43,54 +55,58 @@ class LoginPage extends StatelessWidget{
                     ),
                     child: Image.asset("assets/icons/graduation_hat.png", fit: BoxFit.fill,),
                   ),
-                  Text("School Monitering", style: TextStyle(color: MyColor.white, fontSize: 30, fontWeight: FontWeight.w800),),
+                  Text("School Management System", style: TextStyle(color: MyColor.white, fontSize: 26, fontWeight: FontWeight.w600, fontFamily: 'Poppins', ),),
+                  SizedBox(height: 8,),
+                  Text("Empowering Education, Simplifying Administration", style: TextStyle(color: Colors.white70, fontSize: 14.5,),),
+                  SizedBox(height: 12,),
                   Material(
                     elevation: 5,
                     borderRadius: BorderRadius.circular(25),
                     child: Container(
-                      width: width-60 ,
+                      width: itIsWindow?540:width-60 ,
                       padding: EdgeInsets.all(30),
                       decoration: BoxDecoration(
                         color: MyColor.white,
                         borderRadius: BorderRadius.circular(25),
                       ),
                       child: Column(
-                        spacing: 20,
-                        children: [
-                          Text("Login", style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
-                          CustomTextField(label: "Username", hintText: "Username", controller: _username,),
-                          CustomTextField(label: "School Code", hintText: "School Code", controller: _schoolCode,),
-                          CustomPasswordTextField(label: "Password", hintText: "Password", controller: _password,),
-                          CustomButton(buttonText: "Login", onTap: () async{
-                            print("Login");
-                            print(_password.text);
-                            print("ok");
-                            bool result =  await LoginHandler().login(username: _username.text.trim(), password: _password.text.trim(), schoolCode: _schoolCode.text.trim());
-                            print(result);
-                            if(result == true){
-                              Get.offNamed("/");
-                            }else {
-                              Get.snackbar("Error", "Invalid credentials! Try again!", duration: Duration(seconds: 5));
-                            }
+                          spacing: 20,
+                          children: [
+                            Text("Login", style: TextStyle(fontSize: 30, fontWeight: FontWeight.bold),),
+                            CustomTextField(label: "Username", hintText: "Username", controller: _username,),
+                            CustomTextField(label: "School Code", hintText: "School Code", controller: _schoolCode,),
+                            CustomPasswordTextField(label: "Password", hintText: "Password", controller: _password,),
+                            CustomButton(buttonText: "Login", onTap: () async{
+                              print("Login");
+                              print(_password.text);
+                              print("ok");
+                              bool result =  await LoginHandler().login(username: _username.text.trim(), password: _password.text.trim(), schoolCode: _schoolCode.text.trim());
+                              print(result);
+                              if(result == true){
+                                Get.offNamed("/");
+                              }else {
+                                // Get.snackbar("Error", "Invalid credentials! Try again!", duration: Duration(seconds: 5));
+                              }
 
-                          },),
-                          GestureDetector(
-                            onTap: () {
+                            },),
+                            GestureDetector(
+                              onTap: () {
 
-                            },
-                            child: Text("Forgot Password?", style: TextStyle(color: MyColor.blue, fontSize: 20),),
-                          )
+                              },
+                              child: Text("Forgot Password?", style: TextStyle(color: MyColor.blue, fontSize: 20),),
+                            )
 
-                        ]
+                          ]
                       ),
                     ),
-                  )
+                  ),
+                  SizedBox(height: 20,),
                 ],
               )
-            ],
+
           ),
         ),
-      ),
+      ),),
     );
   }
 
